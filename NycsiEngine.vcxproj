@@ -78,6 +78,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
+    <CopyLocalDeploymentContent>true</CopyLocalDeploymentContent>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
@@ -110,6 +111,7 @@
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <AdditionalIncludeDirectories>external/include</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -117,6 +119,12 @@
       <AdditionalLibraryDirectories>external/libs</AdditionalLibraryDirectories>
       <AdditionalDependencies>$(CoreLibraryDependencies);%(AdditionalDependencies);opengl32.lib;glfw3.lib</AdditionalDependencies>
     </Link>
+    <CustomBuildStep>
+      <RootFolder></RootFolder>
+    </CustomBuildStep>
+    <CopyFileToFolders>
+      <RootFolder>$(OutDir)</RootFolder>
+    </CopyFileToFolders>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -159,6 +167,20 @@
   <ItemGroup>
     <ClCompile Include="glad.c" />
     <ClCompile Include="NycsiEngine.cpp" />
+    <ClCompile Include="Source\NShader.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Source\NShader.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <CopyFileToFolders Include="data\shaders\shader.fs">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </CopyFileToFolders>
+  </ItemGroup>
+  <ItemGroup>
+    <CopyFileToFolders Include="data\shaders\shader.vs">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </CopyFileToFolders>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
