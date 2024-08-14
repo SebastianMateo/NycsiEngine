@@ -2,6 +2,8 @@
 
 #include <string>
 
+#include "glm/fwd.hpp"
+
 class NShader final
 {
 public:
@@ -16,7 +18,10 @@ public:
     void SetBool(const std::string &Name, bool Value) const;
     void SetInt(const std::string &Name, int Value) const;
     void SetFloat(const std::string &Name, float Value) const;
+    void SetMat4(const std::string &Name, const glm::mat4 &Mat) const;
+    
 
+    unsigned int GetId() const { return ShaderProgramId; }
 private:
     unsigned int ShaderProgramId;
 

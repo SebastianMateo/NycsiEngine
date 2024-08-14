@@ -1,11 +1,20 @@
 #include <iostream>
 #include <windows.h>
+
+
 #include <glad/glad.h>
 #include "GLFW/glfw3.h"
+
 #include "Source/NShader.h"
+#include "Source/NTexture.h"
+
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
-#include "Source/NTexture.h"
+
+#define GLM_ENABLE_EXPERIMENTAL
+#include "glm/glm.hpp"
+#include "glm/gtc/type_ptr.hpp"
+#include "Source/Primitives/NCube.h"
 
 void FramebufferSizeCallback(GLFWwindow* window, const int width, const int height)
 {
@@ -51,60 +60,50 @@ int main(int argc, char* argv[])
     }
 
     const NShader Shader = NShader("shaders\\shader.vs", "shaders\\shader.fs");
-
-    // Geometry
-    const float vertices[] =
-    {
-        // positions      // colors            // texture coords
-        0.5f, 0.5f, 0.0f,   1.0f, 0.0f, 0.0f,  1.0f, 1.0f,        // top right
-        0.5f, -0.5f, 0.0f,  0.0f, 1.0f, 0.0f,  1.0f, 0.0f,        // bottom right
-        -0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f,  0.0f, 0.0f,        // bottom left
-        -0.5f,0.5f, 0.0f,   1.0f, 1.0f, 0.0f,  0.0f, 1.0f         // top left
-    };
-
-    unsigned int indices[] =
-    {  
-        0, 1, 3, // first triangle
-        1, 2, 3  // second triangle
-    };
+    NCube Cube;
     
-    // Generate the Vertex Buffer Object and Vertex Array Object 
-    unsigned int VBO, VAO, EBO;
-    glGenVertexArrays(1, &VAO);
-    glGenBuffers(1, &VBO);
-    glGenBuffers(1, &EBO);
-
-    // 1. bind Vertex Array Object.
-    glBindVertexArray(VAO);
-
-    // 2. Copy VBO and EBO
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-    
-    // Bind the element array buffer
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
-    
-    // 3. then set our vertex attributes pointers
-    // Position attribute
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
-    glEnableVertexAttribArray(0);
-
-    // Color attribute. We need to set an offset
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3* sizeof(float)));
-    glEnableVertexAttribArray(1);
-
-    // Texture attribute
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6* sizeof(float)));
-    glEnableVertexAttribArray(2);
-
     const NTexture Texture0 {"textures/container.jpg", GL_TEXTURE0, false};
     const NTexture Texture1 {"textures/awesomeface.png", GL_TEXTURE1, true};
+
+    // Create a Model Matrix
+    //glm::mat4 Model = glm::mat4(1.0f);
+    //Model = glm::rotate(Model, glm::radians(-55.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+
+    // Create a View Matrix
+    glm::mat4 View = glm::mat4(1.0f);
+    View = glm::translate(View, glm::vec3(0.0f, 0.0f, -3.0f));
+
+    // Create a Projection Matrix
+    glm::mat4 Projection = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f);
     
     // Activate the shader program. As we have only one shader
     Shader.Use();
     Shader.SetInt("texture1", 0);
     Shader.SetInt("texture2", 1);
+    //Shader.SetMat4("model", Model);
+    Shader.SetMat4("view", View);
+    Shader.SetMat4("projection", Projection);
+    
+    // Enable Depth test
+    glEnable(GL_DEPTH_TEST);
+
+    constexpr glm::vec3 CubePositions[]
+    {
+        glm::vec3( 0.0f,0.0f,0.0f),
+        glm::vec3( 2.0f,5.0f, -15.0f),
+        glm::vec3(-1.5f, -2.2f,-2.5f),
+        glm::vec3(-3.8f, -2.0f, -12.3f),
+        glm::vec3( 2.4f, -0.4f,-3.5f),
+        glm::vec3(-1.7f,3.0f,-7.5f),
+        glm::vec3( 1.3f, -2.0f,-2.5f),
+        glm::vec3( 1.5f,2.0f,-2.5f),
+        glm::vec3( 1.5f,0.2f,-1.5f),
+        glm::vec3(-1.3f,1.0f,-1.5f)
+    };
+
+    // Set textures
+    Texture0.BindAndActivate();
+    Texture1.BindAndActivate();
     
     // Render Loop
     while (!glfwWindowShouldClose(window))
@@ -114,25 +113,21 @@ int main(int argc, char* argv[])
 
         // Render
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f); // And for this previously set color
-        glClear(GL_COLOR_BUFFER_BIT); // We care about the color buffer
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // Clear Color and Depth test
         
-        // Set textures
-        Texture0.BindAndActivate();
-        Texture1.BindAndActivate();
-        
-        Shader.Use();
-        glBindVertexArray(VAO);
-        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+        for(unsigned int i = 0; i < 10; i++)
+        {
+            glm::mat4 Model = glm::mat4(1.0f);
+            Model = glm::translate(Model, CubePositions[i]);
+            Model = glm::rotate(Model, glm::radians(20.0f * i), glm::vec3(1.0f, 0.3f, 0.5f));
+            Shader.SetMat4("model", Model);
+            Cube.Draw();
+        }
         
         // Check and call events, Swap the buffers
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
-
-    // De-allocate all resources
-    glDeleteVertexArrays(1, &VAO);
-    glDeleteBuffers(1, &VBO);
-    glDeleteBuffers(1, &EBO);
     
     // Nicely clean/delete all allocated GLFW resources
     glfwTerminate();

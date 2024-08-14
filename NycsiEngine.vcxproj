@@ -176,6 +176,8 @@
     <ClCompile Include="NycsiEngine.cpp" />
     <ClCompile Include="Source\NShader.cpp" />
     <ClCompile Include="Source\NTexture.cpp" />
+    <ClCompile Include="Source\Primitives\NCube.cpp" />
+    <ClCompile Include="Source\Primitives\NSquare.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="external\include\glad\glad.h" />
@@ -611,6 +613,8 @@
     <ClInclude Include="external\include\stb_image.h" />
     <ClInclude Include="Source\NShader.h" />
     <ClInclude Include="Source\NTexture.h" />
+    <ClInclude Include="Source\Primitives\NCube.h" />
+    <ClInclude Include="Source\Primitives\NSquare.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="data\shaders\shader.fs" />

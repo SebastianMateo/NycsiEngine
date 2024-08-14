@@ -4,6 +4,7 @@
 #include <iostream>
 #include <sstream>
 #include <glad/glad.h>
+#include "glm/glm.hpp"
 
 NShader::NShader(const std::string& VertexPath, const std::string& FragmentPath)
 {
@@ -47,6 +48,11 @@ void NShader::SetInt(const std::string &Name, const int Value) const
 void NShader::SetFloat(const std::string &Name, const float Value) const
 { 
     glUniform1f(glGetUniformLocation(ShaderProgramId, Name.c_str()), Value); 
+}
+
+void NShader::SetMat4(const std::string& Name, const glm::mat4& Mat) const
+{
+    glUniformMatrix4fv(glGetUniformLocation(ShaderProgramId, Name.c_str()), 1, GL_FALSE, &Mat[0][0]);
 }
 
 unsigned int NShader::CompileShader(const std::string& Path, const int ShaderType)
