@@ -14,12 +14,13 @@
 #define GLM_ENABLE_EXPERIMENTAL
 #include "glm/glm.hpp"
 #include "glm/gtc/type_ptr.hpp"
+#include "Source/NWindow.h"
+#include "Source/Camera/NFreeCamera.h"
+#include "Source/Camera/NOrbitalCamera.h"
 #include "Source/Primitives/NCube.h"
 
-void FramebufferSizeCallback(GLFWwindow* window, const int width, const int height)
-{
-    glViewport(0, 0, width, height);
-}
+constexpr unsigned int SCR_WIDTH = 800;
+constexpr unsigned int SCR_HEIGHT = 600;
 
 void ProcessInput(GLFWwindow *window)
 {
@@ -29,28 +30,9 @@ void ProcessInput(GLFWwindow *window)
     }
 }
 
-constexpr unsigned int SCR_WIDTH = 800;
-constexpr unsigned int SCR_HEIGHT = 600;
-
 int main(int argc, char* argv[])
 {
-    glfwInit();
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-
-    // Window Create
-    GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "Nycsi Engine", NULL, NULL);
-    if (window == nullptr)
-    {
-        std::cout << "Failed to create GLFW window" << std::endl;
-        glfwTerminate();
-        return -1;
-    }
-    glfwMakeContextCurrent(window);
-    
-    // Set the callback when resizing the windows
-    glfwSetFramebufferSizeCallback(window, FramebufferSizeCallback);
+    NWindow Window { SCR_WIDTH, SCR_HEIGHT, "Nycsi Engine" };
     
     // Init GLAD before we call any OpenGL function
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
@@ -59,33 +41,8 @@ int main(int argc, char* argv[])
         return -1;
     }
 
-    const NShader Shader = NShader("shaders\\shader.vs", "shaders\\shader.fs");
+    // Our lonely geometry
     NCube Cube;
-    
-    const NTexture Texture0 {"textures/container.jpg", GL_TEXTURE0, false};
-    const NTexture Texture1 {"textures/awesomeface.png", GL_TEXTURE1, true};
-
-    // Create a Model Matrix
-    //glm::mat4 Model = glm::mat4(1.0f);
-    //Model = glm::rotate(Model, glm::radians(-55.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-
-    // Create a View Matrix
-    glm::mat4 View = glm::mat4(1.0f);
-    View = glm::translate(View, glm::vec3(0.0f, 0.0f, -3.0f));
-
-    // Create a Projection Matrix
-    glm::mat4 Projection = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f);
-    
-    // Activate the shader program. As we have only one shader
-    Shader.Use();
-    Shader.SetInt("texture1", 0);
-    Shader.SetInt("texture2", 1);
-    //Shader.SetMat4("model", Model);
-    Shader.SetMat4("view", View);
-    Shader.SetMat4("projection", Projection);
-    
-    // Enable Depth test
-    glEnable(GL_DEPTH_TEST);
 
     constexpr glm::vec3 CubePositions[]
     {
@@ -100,20 +57,65 @@ int main(int argc, char* argv[])
         glm::vec3( 1.5f,0.2f,-1.5f),
         glm::vec3(-1.3f,1.0f,-1.5f)
     };
+    
+    // Create and activate the Shader
+    const NShader Shader = NShader("shaders\\shader.vs", "shaders\\shader.fs");
+    Shader.Use();
+    Shader.SetInt("texture1", 0);
+    Shader.SetInt("texture2", 1);
+    
+    // Enable Depth test
+    glEnable(GL_DEPTH_TEST);
 
+    // Create some textures
+    const NTexture Texture0 {"textures/container.jpg", GL_TEXTURE0, false};
+    const NTexture Texture1 {"textures/awesomeface.png", GL_TEXTURE1, true};
+    
     // Set textures
     Texture0.BindAndActivate();
     Texture1.BindAndActivate();
     
-    // Render Loop
-    while (!glfwWindowShouldClose(window))
+    // And we form all the vectors that from the view/camera space
+    //NOrbitalCamera Camera(glm::vec3(0.0f, 0.0f, 3.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+    
+    NFreeCamera Camera(glm::vec3(0.0f, 0.0f, 3.0f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+    Window.SetOnMouseMoveCallback([&Camera](const float X, const float Y)
     {
-        // Input
-        ProcessInput(window);
+        Camera.Look(X, Y);
+    });
 
+    Window.SetOnMouseScrollCallback([&Camera, &Shader](const float X, const float Y)
+    {
+        Camera.Zoom(X, Y);
+        glm::mat4 Projection = glm::perspective(glm::radians(Camera.GetFOV()), 800.0f / 600.0f, 0.1f, 100.0f);
+        Shader.SetMat4("projection", Projection);
+    });
+    
+    // TODO The projection matrix should came from the camera
+    // We should have ortographic cameras as well in the future, but for now this should work
+    glm::mat4 Projection = glm::perspective(glm::radians(Camera.GetFOV()), 800.0f / 600.0f, 0.1f, 100.0f);
+    Shader.SetMat4("projection", Projection);
+    
+    // Time of last frame
+    float LastFrame = 0.0f;
+    
+    // Render Loop
+    while (!Window.ShouldClose())
+    {
+        const float CurrentFrame = glfwGetTime();
+        const float DeltaTime = CurrentFrame - LastFrame;
+        LastFrame = CurrentFrame;
+        
+        // Input
+        ProcessInput(Window.GetGlfWindow());
+        Camera.ProcessInput(Window.GetGlfWindow(), DeltaTime);
+        
         // Render
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f); // And for this previously set color
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // Clear Color and Depth test
+
+        Camera.Update(DeltaTime);
+        Shader.SetMat4("view", Camera.GetView());
         
         for(unsigned int i = 0; i < 10; i++)
         {
@@ -125,7 +127,7 @@ int main(int argc, char* argv[])
         }
         
         // Check and call events, Swap the buffers
-        glfwSwapBuffers(window);
+        Window.SwapBuffers();
         glfwPollEvents();
     }
     

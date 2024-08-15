@@ -174,8 +174,11 @@
     <ClCompile Include="external\include\glm\glm.cppm" />
     <ClCompile Include="glad.c" />
     <ClCompile Include="NycsiEngine.cpp" />
+    <ClCompile Include="Source\Camera\NFreeCamera.cpp" />
+    <ClCompile Include="Source\Camera\NOrbitalCamera.cpp" />
     <ClCompile Include="Source\NShader.cpp" />
     <ClCompile Include="Source\NTexture.cpp" />
+    <ClCompile Include="Source\NWindow.cpp" />
     <ClCompile Include="Source\Primitives\NCube.cpp" />
     <ClCompile Include="Source\Primitives\NSquare.cpp" />
   </ItemGroup>
@@ -611,8 +614,11 @@
     <ClInclude Include="external\include\glm\vector_relational.hpp" />
     <ClInclude Include="external\include\KHR\khrplatform.h" />
     <ClInclude Include="external\include\stb_image.h" />
+    <ClInclude Include="Source\Camera\NFreeCamera.h" />
+    <ClInclude Include="Source\Camera\NOrbitalCamera.h" />
     <ClInclude Include="Source\NShader.h" />
     <ClInclude Include="Source\NTexture.h" />
+    <ClInclude Include="Source\NWindow.h" />
     <ClInclude Include="Source\Primitives\NCube.h" />
     <ClInclude Include="Source\Primitives\NSquare.h" />
   </ItemGroup>
@@ -628,6 +634,7 @@
     <Content Include="external\include\glm\CMakeLists.txt" />
     <Content Include="external\include\glm\copying.txt" />
     <Content Include="external\libs\glfw3.lib" />
+    <Content Include="Source\Camera\ICamera.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
