@@ -7,7 +7,6 @@ class NFreeCamera final : public ICamera
 public:
     NFreeCamera(glm::vec3 Pos, glm::vec3 Front, glm::vec3 Up);
     ~NFreeCamera() override = default;
-
     
     void ProcessInput(GLFWwindow* Window, float DeltaTime) override;
     void Update(float DeltaTime) override;
@@ -16,10 +15,16 @@ public:
     void Look(double X, double Y);
     void Zoom(float XOffset, float YOffset);
 
+    // Getters
+    glm::mat4 GetProjection() const { return Projection; }
+    glm::vec3 GetPosition() const { return Pos;}
+
 private:
     glm::vec3 Pos = {};
     glm::vec3 Front = {};
     glm::vec3 Up = {};
+
+    glm::mat4 Projection;
 
     // TODO Fix this. Center of the screen. Should come as parameter
     double LastX = 400;

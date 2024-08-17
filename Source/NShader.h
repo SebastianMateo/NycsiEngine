@@ -19,7 +19,8 @@ public:
     void SetInt(const std::string &Name, int Value) const;
     void SetFloat(const std::string &Name, float Value) const;
     void SetMat4(const std::string &Name, const glm::mat4 &Mat) const;
-    
+    void SetVec3(const std::string& Name, float X1, float X2, float X3) const;
+    void SetVec3(const std::string& Name, const glm::vec3 &Vec) const;
 
     unsigned int GetId() const { return ShaderProgramId; }
 private:

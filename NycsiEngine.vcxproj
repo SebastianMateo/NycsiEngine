@@ -79,6 +79,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
     <CopyLocalDeploymentContent>true</CopyLocalDeploymentContent>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);Source</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
@@ -176,6 +177,7 @@
     <ClCompile Include="NycsiEngine.cpp" />
     <ClCompile Include="Source\Camera\NFreeCamera.cpp" />
     <ClCompile Include="Source\Camera\NOrbitalCamera.cpp" />
+    <ClCompile Include="Source\Lighting\NLight.cpp" />
     <ClCompile Include="Source\NShader.cpp" />
     <ClCompile Include="Source\NTexture.cpp" />
     <ClCompile Include="Source\NWindow.cpp" />
@@ -616,6 +618,7 @@
     <ClInclude Include="external\include\stb_image.h" />
     <ClInclude Include="Source\Camera\NFreeCamera.h" />
     <ClInclude Include="Source\Camera\NOrbitalCamera.h" />
+    <ClInclude Include="Source\Lighting\NLight.h" />
     <ClInclude Include="Source\NShader.h" />
     <ClInclude Include="Source\NTexture.h" />
     <ClInclude Include="Source\NWindow.h" />
@@ -623,10 +626,10 @@
     <ClInclude Include="Source\Primitives\NSquare.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="data\shaders\shader.fs" />
+    <None Include="data\shaders\shader.frag" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="data\shaders\shader.vs" />
+    <None Include="data\shaders\shader.vert" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="data\textures\awesomeface.png" />
@@ -635,6 +638,9 @@
     <Content Include="external\include\glm\copying.txt" />
     <Content Include="external\libs\glfw3.lib" />
     <Content Include="Source\Camera\ICamera.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="data\shaders\lightShader.frag" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

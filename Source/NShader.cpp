@@ -55,6 +55,16 @@ void NShader::SetMat4(const std::string& Name, const glm::mat4& Mat) const
     glUniformMatrix4fv(glGetUniformLocation(ShaderProgramId, Name.c_str()), 1, GL_FALSE, &Mat[0][0]);
 }
 
+void NShader::SetVec3(const std::string& Name, const float X1, const float X2, const float X3) const
+{
+    glUniform3f(glGetUniformLocation(ShaderProgramId, Name.c_str()), X1, X2, X3); 
+}
+
+void NShader::SetVec3(const std::string& Name, const glm::vec3& Vec) const
+{
+    glUniform3fv(glGetUniformLocation(ShaderProgramId, Name.c_str()), 1, &Vec[0]); 
+}
+
 unsigned int NShader::CompileShader(const std::string& Path, const int ShaderType)
 {
     //1. Open the Files and read the Shader Codes

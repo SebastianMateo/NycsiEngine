@@ -14,6 +14,8 @@
 #define GLM_ENABLE_EXPERIMENTAL
 #include "glm/glm.hpp"
 #include "glm/gtc/type_ptr.hpp"
+#include "glm/gtx/rotate_vector.hpp"
+#include "Lighting/NLight.h"
 #include "Source/NWindow.h"
 #include "Source/Camera/NFreeCamera.h"
 #include "Source/Camera/NOrbitalCamera.h"
@@ -41,9 +43,10 @@ int main(int argc, char* argv[])
         return -1;
     }
 
-    // Our lonely geometry
+    // Geometry Definition
     NCube Cube;
-
+    NLight Light;
+    
     constexpr glm::vec3 CubePositions[]
     {
         glm::vec3( 0.0f,0.0f,0.0f),
@@ -57,12 +60,22 @@ int main(int argc, char* argv[])
         glm::vec3( 1.5f,0.2f,-1.5f),
         glm::vec3(-1.3f,1.0f,-1.5f)
     };
+
+    glm::vec3 LightPos(2.0f, 2.0f, 2.0f);
+
+    NFreeCamera Camera(glm::vec3(0.0f, 0.0f, 3.0f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+    
+    // Create Light Shader
+    const NShader LightShader = NShader("shaders\\shader.vert", "shaders\\lightShader.frag");
     
     // Create and activate the Shader
-    const NShader Shader = NShader("shaders\\shader.vs", "shaders\\shader.fs");
+    const NShader Shader = NShader("shaders\\shader.vert", "shaders\\shader.frag");
     Shader.Use();
     Shader.SetInt("texture1", 0);
     Shader.SetInt("texture2", 1);
+    Shader.SetVec3("objectColor", 1.0f, 0.5f, 0.31f);
+    Shader.SetVec3("lightColor", 1.0f, 1.0f, 1.0f);
+    Shader.SetVec3("lightPos", LightPos);
     
     // Enable Depth test
     glEnable(GL_DEPTH_TEST);
@@ -78,23 +91,39 @@ int main(int argc, char* argv[])
     // And we form all the vectors that from the view/camera space
     //NOrbitalCamera Camera(glm::vec3(0.0f, 0.0f, 3.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
     
-    NFreeCamera Camera(glm::vec3(0.0f, 0.0f, 3.0f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+    
     Window.SetOnMouseMoveCallback([&Camera](const float X, const float Y)
     {
         Camera.Look(X, Y);
     });
 
-    Window.SetOnMouseScrollCallback([&Camera, &Shader](const float X, const float Y)
+    // We probably need a list of Shaders, or some container of shaders for the future
+    // Something to link the shader to update it when we need it
+    Window.SetOnMouseScrollCallback([&Camera, &Shader, &LightShader](const float X, const float Y)
     {
         Camera.Zoom(X, Y);
-        glm::mat4 Projection = glm::perspective(glm::radians(Camera.GetFOV()), 800.0f / 600.0f, 0.1f, 100.0f);
-        Shader.SetMat4("projection", Projection);
+
+        Shader.Use();
+        Shader.SetMat4("projection", Camera.GetProjection());
+
+        LightShader.Use();
+        LightShader.SetMat4("projection", Camera.GetProjection());
+        
     });
     
-    // TODO The projection matrix should came from the camera
     // We should have ortographic cameras as well in the future, but for now this should work
-    glm::mat4 Projection = glm::perspective(glm::radians(Camera.GetFOV()), 800.0f / 600.0f, 0.1f, 100.0f);
-    Shader.SetMat4("projection", Projection);
+    Shader.SetMat4("projection", Camera.GetProjection());
+    
+    // Set up the Light
+    {
+        LightShader.Use();
+        glm::mat4 Model = glm::mat4(1.0f);
+        Model = glm::translate(Model, LightPos);
+        Model = glm::scale(Model, glm::vec3(0.2f));
+        LightShader.SetMat4("model", Model);
+        LightShader.SetMat4("projection", Camera.GetProjection());
+        
+    }
     
     // Time of last frame
     float LastFrame = 0.0f;
@@ -109,22 +138,43 @@ int main(int argc, char* argv[])
         // Input
         ProcessInput(Window.GetGlfWindow());
         Camera.ProcessInput(Window.GetGlfWindow(), DeltaTime);
+        Camera.Update(DeltaTime);
         
-        // Render
+        // Clear the scene
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f); // And for this previously set color
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // Clear Color and Depth test
-
-        Camera.Update(DeltaTime);
-        Shader.SetMat4("view", Camera.GetView());
         
+        // Cube Rendering
+        /*
         for(unsigned int i = 0; i < 10; i++)
         {
             glm::mat4 Model = glm::mat4(1.0f);
             Model = glm::translate(Model, CubePositions[i]);
             Model = glm::rotate(Model, glm::radians(20.0f * i), glm::vec3(1.0f, 0.3f, 0.5f));
             Shader.SetMat4("model", Model);
+            Shader.Use();
             Cube.Draw();
         }
+        */
+
+        // Cube Rendering
+        {
+            Shader.Use();
+            glm::mat4 Model = glm::mat4(1.0f);
+            Model = glm::rotate(Model,  glm::radians(45.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+            Shader.SetMat4("view", Camera.GetView());
+            Shader.SetMat4("model", Model);
+            Shader.SetVec3("viewPos", Camera.GetPosition());
+            Cube.Draw();    
+        }
+
+        // Light Drawing
+        {
+            LightShader.Use();
+            LightShader.SetMat4("view", Camera.GetView());
+            Light.Draw();    
+        }
+        
         
         // Check and call events, Swap the buffers
         Window.SwapBuffers();

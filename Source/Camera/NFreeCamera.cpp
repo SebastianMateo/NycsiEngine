@@ -1,5 +1,6 @@
 ﻿#include "NFreeCamera.h"
 
+#include "glm/ext/matrix_clip_space.hpp"
 #include "glm/ext/matrix_transform.hpp"
 
 NFreeCamera::NFreeCamera(const glm::vec3 Pos, const glm::vec3 Front, const glm::vec3 Up):
@@ -8,6 +9,8 @@ NFreeCamera::NFreeCamera(const glm::vec3 Pos, const glm::vec3 Front, const glm::
     Front(Front),
     Up(Up)
 {
+    // We need to generate the Perspective Projection
+    Zoom(0, 0);
 }
 
 void NFreeCamera::Look(const double X, const double Y)
@@ -69,4 +72,7 @@ void NFreeCamera::Zoom(float XOffset, const float YOffset)
     
     if (FOV > 45.0f)
         FOV = 45.0f;
+
+    // We need to update the Projection
+    Projection = glm::perspective(glm::radians(FOV), 800.0f / 600.0f, 0.1f, 100.0f);
 }
