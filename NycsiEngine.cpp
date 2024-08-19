@@ -61,7 +61,13 @@ int main(int argc, char* argv[])
         glm::vec3(-1.3f,1.0f,-1.5f)
     };
 
-    glm::vec3 LightPos(2.0f, 2.0f, 2.0f);
+    glm::vec3 PointLightPositions[] =
+    {
+        glm::vec3( 0.7f,  0.2f,  2.0f),
+        glm::vec3( 2.3f, -3.3f, -4.0f),
+        glm::vec3(-4.0f,  2.0f, -12.0f),
+        glm::vec3( 0.0f,  0.0f, -3.0f)
+    };
 
     NFreeCamera Camera(glm::vec3(0.0f, 0.0f, 3.0f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f));
     
@@ -75,29 +81,78 @@ int main(int argc, char* argv[])
     // Create and activate the Shader
     const NShader Shader = NShader("shaders\\shader.vert", "shaders\\shader.frag");
     Shader.Use();
-    Shader.SetVec3("light.position", LightPos);
-    Shader.SetVec3("light.ambient", 0.2f, 0.2f, 0.2f);
-    Shader.SetVec3("light.diffuse", 0.5f, 0.5f, 0.5f);
-    Shader.SetVec3("light.specular", 1.0f, 1.0f, 1.0f);
+
+    // Set Materials
+    DiffuseTexture.BindAndActivate();
+    SpecularTexture.BindAndActivate();
     Shader.SetInt("material.diffuse", 0);
     Shader.SetInt("material.specular", 1);
     Shader.SetFloat("material.shininess", 32.0f);
-    DiffuseTexture.BindAndActivate();
-    SpecularTexture.BindAndActivate();
+
+    // Set all the lights // TODO IMPROVE
+    // directional light
+    Shader.SetVec3("dirLight.ambient", 0.05f, 0.05f, 0.05f);
+    Shader.SetVec3("dirLight.diffuse", 0.4f, 0.4f, 0.4f);
+    Shader.SetVec3("dirLight.direction", -0.2f, -1.0f, -0.3f);
+    Shader.SetVec3("dirLight.specular", 0.5f, 0.5f, 0.5f);
+    // point light 1
+    Shader.SetVec3("pointLights[0].position", PointLightPositions[0]);
+    Shader.SetVec3("pointLights[0].ambient", 0.05f, 0.05f, 0.05f);
+    Shader.SetVec3("pointLights[0].diffuse", 0.8f, 0.8f, 0.8f);
+    Shader.SetVec3("pointLights[0].specular", 1.0f, 1.0f, 1.0f);
+    Shader.SetFloat("pointLights[0].constant", 1.0f);
+    Shader.SetFloat("pointLights[0].linear", 0.09f);
+    Shader.SetFloat("pointLights[0].quadratic", 0.032f);
+    // point light 2
+    Shader.SetVec3("pointLights[1].position", PointLightPositions[1]);
+    Shader.SetVec3("pointLights[1].ambient", 0.05f, 0.05f, 0.05f);
+    Shader.SetVec3("pointLights[1].diffuse", 0.8f, 0.8f, 0.8f);
+    Shader.SetVec3("pointLights[1].specular", 1.0f, 1.0f, 1.0f);
+    Shader.SetFloat("pointLights[1].constant", 1.0f);
+    Shader.SetFloat("pointLights[1].linear", 0.09f);
+    Shader.SetFloat("pointLights[1].quadratic", 0.032f);
+    // point light 3
+    Shader.SetVec3("pointLights[2].position", PointLightPositions[2]);
+    Shader.SetVec3("pointLights[2].ambient", 0.05f, 0.05f, 0.05f);
+    Shader.SetVec3("pointLights[2].diffuse", 0.8f, 0.8f, 0.8f);
+    Shader.SetVec3("pointLights[2].specular", 1.0f, 1.0f, 1.0f);
+    Shader.SetFloat("pointLights[2].constant", 1.0f);
+    Shader.SetFloat("pointLights[2].linear", 0.09f);
+    Shader.SetFloat("pointLights[2].quadratic", 0.032f);
+    // point light 4
+    Shader.SetVec3("pointLights[3].position", PointLightPositions[3]);
+    Shader.SetVec3("pointLights[3].ambient", 0.05f, 0.05f, 0.05f);
+    Shader.SetVec3("pointLights[3].diffuse", 0.8f, 0.8f, 0.8f);
+    Shader.SetVec3("pointLights[3].specular", 1.0f, 1.0f, 1.0f);
+    Shader.SetFloat("pointLights[3].constant", 1.0f);
+    Shader.SetFloat("pointLights[3].linear", 0.09f);
+    Shader.SetFloat("pointLights[3].quadratic", 0.032f);
+
+    // spotLight
+    Shader.SetVec3("spotLight.position", Camera.GetPosition());
+    Shader.SetVec3("spotLight.direction", Camera.GetFront());
+    Shader.SetVec3("spotLight.ambient", 0.0f, 0.0f, 0.0f);
+    Shader.SetVec3("spotLight.diffuse", 1.0f, 1.0f, 1.0f);
+    Shader.SetVec3("spotLight.specular", 1.0f, 1.0f, 1.0f);
+    Shader.SetFloat("spotLight.constant", 1.f);
+    Shader.SetFloat("spotLight.linear", 0.09f);
+    Shader.SetFloat("spotLight.quadratic", 0.032f);
+    Shader.SetFloat("spotLight.cutOff", glm::cos(glm::radians(8.f)));
+    Shader.SetFloat("spotLight.outerCutOff", glm::cos(glm::radians(12.0f)));     
     
     // Enable Depth test
     glEnable(GL_DEPTH_TEST);
     
-    // Set textures
-    
-    
     // And we form all the vectors that from the view/camera space
     //NOrbitalCamera Camera(glm::vec3(0.0f, 0.0f, 3.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
     
-    
-    Window.SetOnMouseMoveCallback([&Camera](const float X, const float Y)
+    Window.SetOnMouseMoveCallback([&Camera, &Shader](const float X, const float Y)
     {
         Camera.Look(X, Y);
+
+        Shader.Use();
+        Shader.SetVec3("spotLight.position", Camera.GetPosition());
+        Shader.SetVec3("spotLight.direction", Camera.GetFront());
     });
 
     // We probably need a list of Shaders, or some container of shaders for the future
@@ -115,19 +170,12 @@ int main(int argc, char* argv[])
     });
     
     // We should have ortographic cameras as well in the future, but for now this should work
+    Shader.Use();
     Shader.SetMat4("projection", Camera.GetProjection());
-    
-    // Set up the Light
-    {
-        LightShader.Use();
-        glm::mat4 Model = glm::mat4(1.0f);
-        Model = glm::translate(Model, LightPos);
-        Model = glm::scale(Model, glm::vec3(0.2f));
-        LightShader.SetMat4("model", Model);
-        LightShader.SetMat4("projection", Camera.GetProjection());
-        
-    }
-    
+
+    LightShader.Use();
+    LightShader.SetMat4("projection", Camera.GetProjection());
+
     // Time of last frame
     float LastFrame = 0.0f;
     
@@ -144,40 +192,34 @@ int main(int argc, char* argv[])
         Camera.Update(DeltaTime);
         
         // Clear the scene
-        glClearColor(0.2f, 0.3f, 0.3f, 1.0f); // And for this previously set color
+        glClearColor(0.0f, 0.0f, 0.0f, 1.0f); // And for this previously set color
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // Clear Color and Depth test
         
         // Cube Rendering
-        /*
         for(unsigned int i = 0; i < 10; i++)
         {
+            Shader.Use();
             glm::mat4 Model = glm::mat4(1.0f);
             Model = glm::translate(Model, CubePositions[i]);
             Model = glm::rotate(Model, glm::radians(20.0f * i), glm::vec3(1.0f, 0.3f, 0.5f));
-            Shader.SetMat4("model", Model);
-            Shader.Use();
-            Cube.Draw();
-        }
-        */
-
-        // Cube Rendering
-        {
-            Shader.Use();
-            glm::mat4 Model = glm::mat4(1.0f);
-            Model = glm::rotate(Model,  glm::radians(45.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+            Shader.SetVec3("spotLight.position", Camera.GetPosition());
+            Shader.SetVec3("spotLight.direction", Camera.GetFront());
             Shader.SetMat4("view", Camera.GetView());
             Shader.SetMat4("model", Model);
             Shader.SetVec3("viewPos", Camera.GetPosition());
-            Cube.Draw();    
+            Cube.Draw();
         }
 
-        // Light Drawing
+        for (glm::vec3 PointLightPosition : PointLightPositions)
         {
             LightShader.Use();
+            glm::mat4 Model = glm::mat4(1.0f);
+            Model = glm::translate(Model, PointLightPosition);
+            Model = glm::scale(Model, glm::vec3(0.2f));
             LightShader.SetMat4("view", Camera.GetView());
+            LightShader.SetMat4("model", Model);
             Light.Draw();    
         }
-        
         
         // Check and call events, Swap the buffers
         Window.SwapBuffers();

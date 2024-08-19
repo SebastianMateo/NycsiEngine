@@ -18,6 +18,7 @@ public:
     // Getters
     glm::mat4 GetProjection() const { return Projection; }
     glm::vec3 GetPosition() const { return Pos;}
+    glm::vec3 GetFront() const { return Front;}
 
 private:
     glm::vec3 Pos = {};
