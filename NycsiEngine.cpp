@@ -67,26 +67,29 @@ int main(int argc, char* argv[])
     
     // Create Light Shader
     const NShader LightShader = NShader("shaders\\shader.vert", "shaders\\lightShader.frag");
+
+    // Create some textures
+    const NTexture DiffuseTexture {"textures/containerDiffuse.png", GL_TEXTURE0, true};
+    const NTexture SpecularTexture {"textures/containerSpecular.png", GL_TEXTURE1, true};
     
     // Create and activate the Shader
     const NShader Shader = NShader("shaders\\shader.vert", "shaders\\shader.frag");
     Shader.Use();
-    Shader.SetInt("texture1", 0);
-    Shader.SetInt("texture2", 1);
-    Shader.SetVec3("objectColor", 1.0f, 0.5f, 0.31f);
-    Shader.SetVec3("lightColor", 1.0f, 1.0f, 1.0f);
-    Shader.SetVec3("lightPos", LightPos);
+    Shader.SetVec3("light.position", LightPos);
+    Shader.SetVec3("light.ambient", 0.2f, 0.2f, 0.2f);
+    Shader.SetVec3("light.diffuse", 0.5f, 0.5f, 0.5f);
+    Shader.SetVec3("light.specular", 1.0f, 1.0f, 1.0f);
+    Shader.SetInt("material.diffuse", 0);
+    Shader.SetInt("material.specular", 1);
+    Shader.SetFloat("material.shininess", 32.0f);
+    DiffuseTexture.BindAndActivate();
+    SpecularTexture.BindAndActivate();
     
     // Enable Depth test
     glEnable(GL_DEPTH_TEST);
-
-    // Create some textures
-    const NTexture Texture0 {"textures/container.jpg", GL_TEXTURE0, false};
-    const NTexture Texture1 {"textures/awesomeface.png", GL_TEXTURE1, true};
     
     // Set textures
-    Texture0.BindAndActivate();
-    Texture1.BindAndActivate();
+    
     
     // And we form all the vectors that from the view/camera space
     //NOrbitalCamera Camera(glm::vec3(0.0f, 0.0f, 3.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));

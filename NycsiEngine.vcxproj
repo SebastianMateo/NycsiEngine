@@ -129,8 +129,13 @@
       <RootFolder>$(OutDir)</RootFolder>
     </CopyFileToFolders>
     <PostBuildEvent>
-      <Command>xcopy $(SolutionDir)data $(OutDir) /e /K /D /H /Y</Command>
+      <Command>xcopy $(SolutionDir)data $(OutDir) /e /s /y</Command>
+      <Message></Message>
     </PostBuildEvent>
+    <PreBuildEvent>
+      <Command></Command>
+      <Message>Copying Data</Message>
+    </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -627,6 +632,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="data\shaders\shader.frag" />
+    <None Include="data\shaders\phongShader.frag" />
   </ItemGroup>
   <ItemGroup>
     <None Include="data\shaders\shader.vert" />
