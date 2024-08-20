@@ -5,8 +5,8 @@
 #include <glad/glad.h>
 #include "GLFW/glfw3.h"
 
-#include "Source/NShader.h"
-#include "Source/NTexture.h"
+#include "Source/Rendering/NShader.h"
+#include "Source/Rendering/NTexture.h"
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
@@ -75,8 +75,8 @@ int main(int argc, char* argv[])
     const NShader LightShader = NShader("shaders\\shader.vert", "shaders\\lightShader.frag");
 
     // Create some textures
-    const NTexture DiffuseTexture {"textures/containerDiffuse.png", GL_TEXTURE0, true};
-    const NTexture SpecularTexture {"textures/containerSpecular.png", GL_TEXTURE1, true};
+    const NTexture DiffuseTexture {"textures/containerDiffuse.png", GL_TEXTURE0, ETextureType::Diffuse, true};
+    const NTexture SpecularTexture {"textures/containerSpecular.png", GL_TEXTURE1, ETextureType::Specular, true};
     
     // Create and activate the Shader
     const NShader Shader = NShader("shaders\\shader.vert", "shaders\\shader.frag");

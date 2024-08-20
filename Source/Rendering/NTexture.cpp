@@ -6,11 +6,10 @@
 #include "stb_image.h"
 #include "glad/glad.h"
 
-NTexture::NTexture(const std::string& Path, const unsigned int TextureUnit, const bool bHasAlpha)
+NTexture::NTexture(const std::string& Path, const unsigned int TextureUnit, ETextureType TextureType, const bool bHasAlpha):
+    TextureUnit(TextureUnit),
+    TextureType(TextureType)
 {
-    // Save the texture unity to bind and activate later
-    this->TextureUnit = TextureUnit;
-    
     // Texture Binding
     glGenTextures(1, &TextureId); // How many texture we want to generate, and store it in the second argument
     glBindTexture(GL_TEXTURE_2D, TextureId);
