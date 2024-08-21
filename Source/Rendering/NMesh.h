@@ -12,7 +12,7 @@ class NMesh
 {
 public:
     NMesh(std::vector<NVertex> Vertices, std::vector<unsigned int> Indices, std::vector<NTexture> Textures);
-    void Draw(NShader &Shader);
+    void Draw(const NShader &Shader);
     
 private:
     std::vector<NVertex> Vertices;

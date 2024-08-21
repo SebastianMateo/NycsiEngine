@@ -4,19 +4,22 @@
 enum class ETextureType
 {
     Diffuse,
-    Specular
+    Specular,
+    Normal,
+    Height
 };
 
 class NTexture
 {
 public:
-    NTexture(const std::string& Path, unsigned int TextureUnit, ETextureType TextureType, bool bHasAlpha = false);
+    NTexture(const std::string& Path, ETextureType TextureType);
 
     ETextureType GetTextureType() const { return TextureType; }
-    void BindAndActivate() const;
+    unsigned int GetTextureId() const { return TextureId; }
+    
+    void BindAndActivate(unsigned int TextureUnit) const;
     
 private:
     unsigned int TextureId;
-    unsigned int TextureUnit;
     ETextureType TextureType;
 };

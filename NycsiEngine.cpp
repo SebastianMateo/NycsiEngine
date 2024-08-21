@@ -1,10 +1,8 @@
 #include <iostream>
 #include <windows.h>
-
-
 #include <glad/glad.h>
-#include "GLFW/glfw3.h"
 
+#include "GLFW/glfw3.h"
 #include "Source/Rendering/NShader.h"
 #include "Source/Rendering/NTexture.h"
 
@@ -20,6 +18,7 @@
 #include "Source/Camera/NFreeCamera.h"
 #include "Source/Camera/NOrbitalCamera.h"
 #include "Source/Primitives/NCube.h"
+#include "Source/Rendering/NModel.h"
 
 constexpr unsigned int SCR_WIDTH = 800;
 constexpr unsigned int SCR_HEIGHT = 600;
@@ -32,6 +31,9 @@ void ProcessInput(GLFWwindow *window)
     }
 }
 
+void SceneCubes(NWindow& Window);
+void SceneModel(NWindow& Window);
+
 int main(int argc, char* argv[])
 {
     NWindow Window { SCR_WIDTH, SCR_HEIGHT, "Nycsi Engine" };
@@ -42,9 +44,91 @@ int main(int argc, char* argv[])
         std::cout << "Failed to initialize GLAD" << std::endl;
         return -1;
     }
+    
+    SceneModel(Window);
+    
+    // Nicely clean/delete all allocated GLFW resources
+    glfwTerminate();
+    
+    return 0;
+}
 
+void SceneModel(NWindow& Window)
+{
+    const NShader Shader = NShader("shaders\\shader.vert", "shaders\\shader.frag");
+    Shader.Use();
+    
+    // Directional Light
+    Shader.SetVec3("dirLight.ambient", 0.2f, 0.2f, 0.2f);
+    Shader.SetVec3("dirLight.diffuse", 0.8f, 0.8f, 0.8f);
+    Shader.SetVec3("dirLight.direction", -0.2f, -1.0f, -0.3f);
+    Shader.SetVec3("dirLight.specular", 0.5f, 0.5f, 0.5f);
+    Shader.SetFloat("material.shininess", 32.0f); // TODO Should be getting this from the model...
+    
+    NModel Backpack("models/backpack/backpack.obj");
+
+    NFreeCamera Camera(glm::vec3(0.0f, 0.0f, 3.0f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+
+    Window.SetOnMouseMoveCallback([&Camera, &Shader](const float X, const float Y)
+        {
+            Camera.Look(X, Y);
+            Shader.Use();
+        });
+
+    // We probably need a list of Shaders, or some container of shaders for the future
+    // Something to link the shader to update it when we need it
+    Window.SetOnMouseScrollCallback([&Camera, &Shader](const float X, const float Y)
+    {
+        Camera.Zoom(X, Y);
+
+        Shader.Use();
+        Shader.SetMat4("projection", Camera.GetProjection());
+    });
+    
+    // We should have ortographic cameras as well in the future, but for now this should work
+    Shader.Use();
+    Shader.SetMat4("projection", Camera.GetProjection());
+    
+    // Time of last frame
+    float LastFrame = 0.0f;
+
+    glEnable(GL_DEPTH_TEST);
+    
+    while (!Window.ShouldClose())
+    {
+        const float CurrentFrame = glfwGetTime();
+        const float DeltaTime = CurrentFrame - LastFrame;
+        LastFrame = CurrentFrame;
+        
+        // Input
+        ProcessInput(Window.GetGlfWindow());
+        Camera.ProcessInput(Window.GetGlfWindow(), DeltaTime);
+        Camera.Update(DeltaTime);
+        
+        // Clear the scene
+        glClearColor(0.0f, 0.0f, 0.0f, 1.0f); // And for this previously set color
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // Clear Color and Depth test
+        
+        // Model
+        {
+            Shader.Use();
+            glm::mat4 Model = glm::mat4(1.0f);
+            Shader.SetMat4("view", Camera.GetView());
+            Shader.SetMat4("model", Model);
+            Backpack.Draw(Shader);    
+        }
+        
+        // Check and call events, Swap the buffers
+        Window.SwapBuffers();
+        glfwPollEvents();
+    }
+}
+
+void SceneCubes(NWindow& Window)
+{
     // Geometry Definition
     NCube Cube;
+    
     NLight Light;
     
     constexpr glm::vec3 CubePositions[]
@@ -75,18 +159,18 @@ int main(int argc, char* argv[])
     const NShader LightShader = NShader("shaders\\shader.vert", "shaders\\lightShader.frag");
 
     // Create some textures
-    const NTexture DiffuseTexture {"textures/containerDiffuse.png", GL_TEXTURE0, ETextureType::Diffuse, true};
-    const NTexture SpecularTexture {"textures/containerSpecular.png", GL_TEXTURE1, ETextureType::Specular, true};
+    const NTexture DiffuseTexture {"textures/containerDiffuse.png", ETextureType::Diffuse};
+    const NTexture SpecularTexture {"textures/containerSpecular.png", ETextureType::Specular};
     
     // Create and activate the Shader
     const NShader Shader = NShader("shaders\\shader.vert", "shaders\\shader.frag");
     Shader.Use();
 
     // Set Materials
-    DiffuseTexture.BindAndActivate();
-    SpecularTexture.BindAndActivate();
-    Shader.SetInt("material.diffuse", 0);
-    Shader.SetInt("material.specular", 1);
+    DiffuseTexture.BindAndActivate(GL_TEXTURE0);
+    Shader.SetInt("material.diffuse1", 0);
+    SpecularTexture.BindAndActivate(GL_TEXTURE1);
+    Shader.SetInt("material.specular1", 1);
     Shader.SetFloat("material.shininess", 32.0f);
 
     // Set all the lights // TODO IMPROVE
@@ -225,9 +309,6 @@ int main(int argc, char* argv[])
         Window.SwapBuffers();
         glfwPollEvents();
     }
-    
-    // Nicely clean/delete all allocated GLFW resources
-    glfwTerminate();
-    
-    return 0;
 }
+
+
