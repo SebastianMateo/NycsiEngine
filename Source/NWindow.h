@@ -1,6 +1,6 @@
 ﻿#pragma once
 #include <functional>
-#include <cvt/wstring>
+#include <string>
 
 #include "GLFW/glfw3.h"
 
